@@ -15,26 +15,36 @@ $q = mysqli_query($conn,"
 ?>
 
 <section class="page">
-<h2>Payment History</h2>
+    <h2>Payment History</h2>
 
-<table class="schedule-table">
-<tr>
-    <th>Date</th>
-    <th>Membership</th>
-    <th>Amount</th>
-    <th>Status</th>
-</tr>
+    <table class="schedule-table">
+        <tr>
+            <th>Date</th>
+            <th>Membership</th>
+            <th>Amount</th>
+            <th>Status</th>
+        </tr>
 
-<?php while($row = mysqli_fetch_assoc($q)): ?>
-<tr>
-    <td><?= $row['payment_Date'] ?></td>
-    <td><?= $row['plan_Name'] ?></td>
-    <td>RM <?= $row['amount'] ?></td>
-    <td><?= $row['payment_status'] ?></td>
-</tr>
-<?php endwhile; ?>
+        <?php 
+        if(mysqli_num_rows($q) > 0):
+            while($row = mysqli_fetch_assoc($q)): 
+        ?>
+        <tr>
+            <td><?= date('Y-m-d H:i', strtotime($row['payment_Date'])) ?></td>
+            <td><?= htmlspecialchars($row['plan_Name']) ?></td>
+            <td>RM <?= number_format($row['amount'], 2) ?></td>
+            <td><?= htmlspecialchars($row['payment_status']) ?></td>
+        </tr>
+        <?php 
+            endwhile;
+        else: 
+        ?>
+        <tr>
+            <td colspan="4">No payment history found.</td>
+        </tr>
+        <?php endif; ?>
 
-</table>
+    </table>
 </section>
 
 <?php include("../includes/footer.php"); ?>

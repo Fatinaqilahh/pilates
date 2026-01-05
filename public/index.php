@@ -6,7 +6,7 @@
     <div class="hero-text">
         <h1>Move Better.<br>Live Stronger.</h1>
         <p>A modern Pilates studio for strength, balance and calm.</p>
-        <a href="#classes" class="btn-light">Explore Classes</a>
+         <a href="/pilates/public/plans.php" class="btn-light">Explore Memberships</a>
     </div>
 </section>
 
@@ -72,13 +72,6 @@
         </div>
 
     </div>
-</section>
-
-<!-- MEMBERSHIP CTA -->
-<section id="memberships" class="cta">
-    <h2>Find the Right Membership</h2>
-    <p>From free access to private VIP sessions, we have a plan for everyone.</p>
-    <a href="/pilates/public/plans.php" class="btn">View Memberships</a>
 </section>
 
 <?php include("../includes/footer.php"); ?>

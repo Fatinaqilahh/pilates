@@ -41,7 +41,7 @@ include("../includes/header.php");
                 echo "<p class='plan-note'>Pay per class</p>";
             }
 
-            echo "<a href='register.php' class='plan-btn'>Join</a>";
+            echo "<a href='/pilates/auth/register.php' class='plan-btn'>Join Now</a>";
             echo "</div>";
         }
         ?>

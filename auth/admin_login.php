@@ -13,7 +13,7 @@ if(isset($_POST['admin_login'])){
     if(mysqli_num_rows($q)==1){
         $admin = mysqli_fetch_assoc($q);
 
-        if($password == $admin['admin_Password']){
+        if($password == $admin['admin_password']){
             $_SESSION['admin_id'] = $admin['admin_ID'];
             header("Location: ../admin/dashboard.php");
             exit;

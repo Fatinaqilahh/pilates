@@ -26,12 +26,29 @@ if (isset($_POST['register'])) {
 
         $customer_id = mysqli_insert_id($conn);
 
-        // Auto FREE membership (make sure plan_ID = 1 exists)
-        mysqli_query($conn, "
-            INSERT INTO customermembership 
-            (customer_ID, plan_ID, membership_Status, start_Date)
-            VALUES ($customer_id, 1, 'FREE', CURDATE())
+        // Dynamically find Free plan ID (plan with price 0.00)
+        $freePlanQuery = mysqli_query($conn, "
+            SELECT plan_ID FROM membershipplan WHERE plan_Price = 0.00 LIMIT 1
         ");
+        
+        if (mysqli_num_rows($freePlanQuery) > 0) {
+            $freePlan = mysqli_fetch_assoc($freePlanQuery);
+            $free_plan_id = $freePlan['plan_ID'];
+            
+            // Auto FREE membership
+            mysqli_query($conn, "
+                INSERT INTO customermembership 
+                (customer_ID, plan_ID, membership_Status, start_Date)
+                VALUES ($customer_id, $free_plan_id, 'ACTIVE', CURDATE())
+            ");
+        } else {
+            // Fallback to plan_ID = 17 if no free plan found
+            mysqli_query($conn, "
+                INSERT INTO customermembership 
+                (customer_ID, plan_ID, membership_Status, start_Date)
+                VALUES ($customer_id, 17, 'ACTIVE', CURDATE())
+            ");
+        }
 
         $_SESSION['customer_id'] = $customer_id;
         header("Location: ../member/dashboard.php");
@@ -52,7 +69,6 @@ if (isset($_POST['register'])) {
     <a href="/pilates/public/index.php" class="auth-back">
     ← Back to Home
 </a>
-
 
 <div class="auth-container">
 

@@ -66,17 +66,71 @@ if (!$membership) {
         ];
     }
 }
+
+/* ======================
+   HANDLE PROFILE UPDATE
+   ====================== */
+$success = '';
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+    
+    // Check if email already exists for another customer
+    $checkEmail = mysqli_query(
+        $conn,
+        "SELECT customer_ID FROM Customer 
+         WHERE customer_Email = '$email' AND customer_ID != $id"
+    );
+    
+    if (mysqli_num_rows($checkEmail) > 0) {
+        $error = "Email address already exists!";
+    } else {
+        $updateQuery = "UPDATE Customer SET 
+                        customer_Name = '$name',
+                        customer_Email = '$email',
+                        customer_Phone = '$phone'
+                        WHERE customer_ID = $id";
+        
+        if (mysqli_query($conn, $updateQuery)) {
+            $success = "Profile updated successfully!";
+            // Refresh profile data
+            $profileResult = mysqli_query(
+                $conn,
+                "SELECT * FROM Customer WHERE customer_ID = $id"
+            );
+            $profile = mysqli_fetch_assoc($profileResult);
+        } else {
+            $error = "Error updating profile: " . mysqli_error($conn);
+        }
+    }
+}
 ?>
 
 <?php include("../includes/header.php"); ?>
+
+<!-- Display Messages -->
 <?php if(isset($_GET['payment'])): ?>
     <div class="success-box">
         Payment successful! Your membership has been updated.
     </div>
 <?php endif; ?>
 
+<?php if($success): ?>
+    <div class="success-box">
+        <?php echo $success; ?>
+    </div>
+<?php endif; ?>
 
-<section class="dashboard">
+<?php if($error): ?>
+    <div class="error-box">
+        <?php echo $error; ?>
+    </div>
+<?php endif; ?>
+
+<section class="dashboard dashboard-customer">
 
     <!-- HEADER -->
     <div class="dashboard-header">
@@ -91,8 +145,14 @@ if (!$membership) {
 
         <div class="dashboard-card">
             <h3>Your Profile</h3>
+            <p><strong>Name:</strong> <?= htmlspecialchars($profile['customer_Name']) ?></p>
             <p><strong>Email:</strong> <?= htmlspecialchars($profile['customer_Email']) ?></p>
             <p><strong>Phone:</strong> <?= htmlspecialchars($profile['customer_Phone']) ?></p>
+            
+            <!-- Edit Profile Modal Trigger -->
+            <button class="btn-edit-profile" onclick="openEditModal()">
+                Edit Profile
+            </button>
         </div>
 
         <div class="dashboard-card highlight">
@@ -113,6 +173,48 @@ if (!$membership) {
     <div class="dashboard-actions">
         <a href="book.php" class="btn-dark">Book a Class</a>
         <a href="upgrade.php" class="btn-light">View Membership Plans</a>
+    </div>
+
+    <!-- EDIT PROFILE MODAL -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Your Profile</h2>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" 
+                               value="<?= htmlspecialchars($profile['customer_Name']) ?>" 
+                               required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" 
+                               value="<?= htmlspecialchars($profile['customer_Email']) ?>" 
+                               required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="text" id="phone" name="phone" 
+                               value="<?= htmlspecialchars($profile['customer_Phone']) ?>">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-light" onclick="closeEditModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" name="update_profile" class="btn-dark">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- AVAILABLE CLASSES -->
@@ -173,3 +275,24 @@ if (!$membership) {
     </div>
 
 </section>
+
+<!-- JavaScript for Modal -->
+<script>
+function openEditModal() {
+    document.getElementById('editProfileModal').style.display = 'block';
+}
+
+function closeEditModal() {
+    document.getElementById('editProfileModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    var modal = document.getElementById('editProfileModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+</script>
+
+<?php include("../includes/footer.php"); ?>

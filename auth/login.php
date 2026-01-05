@@ -10,7 +10,6 @@ if (isset($_POST['login'])) {
     $password = $_POST['password'];
 
     if ($role === 'admin') {
-
         $q = mysqli_query($conn,"
             SELECT * FROM admin 
             WHERE admin_Email='$email' 
@@ -20,7 +19,8 @@ if (isset($_POST['login'])) {
         if (mysqli_num_rows($q) === 1) {
             $admin = mysqli_fetch_assoc($q);
 
-            if (password_verify($password, $admin['admin_Password'])) {
+            // CHANGED: Use direct comparison (==) instead of password_verify()
+            if ($password == $admin['admin_password']) {
                 $_SESSION['admin_id'] = $admin['admin_ID'];
                 header("Location: ../admin/dashboard.php");
                 exit;
@@ -32,7 +32,7 @@ if (isset($_POST['login'])) {
         }
 
     } else {
-
+        // Customer login - keep using password_verify()
         $q = mysqli_query($conn,"
             SELECT * FROM customer 
             WHERE customer_Email='$email' 
@@ -97,12 +97,9 @@ if (isset($_POST['login'])) {
     </button>
 </div>
 
-<input type="hidden" name="role" value="<?= $role ?>">
-
-
-
-        <form method="POST">
-            <input type="hidden" name="role" value="<?= $role ?>">
+        <form method="POST" id="loginForm">
+            <!-- ONLY ONE hidden input for role, inside the form -->
+            <input type="hidden" name="role" id="roleInput" value="<?= $role ?>">
 
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
@@ -127,18 +124,19 @@ if (isset($_POST['login'])) {
 </div>
 
 <script>
-const roleButtons = document.querySelectorAll('.role-btn');
-const roleInput = document.querySelector('input[name="role"]');
+document.addEventListener('DOMContentLoaded', function() {
+    const roleButtons = document.querySelectorAll('.role-btn');
+    const roleInput = document.getElementById('roleInput');
 
-roleButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        roleButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        roleInput.value = btn.dataset.role;
+    roleButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            roleButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            roleInput.value = btn.dataset.role;
+        });
     });
 });
 </script>
-
 
 </body>
 </html>

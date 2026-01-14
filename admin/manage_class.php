@@ -76,6 +76,13 @@ if (isset($_GET['delete'])) {
 
     <!-- Main content with new classes -->
     <div class="dashboard-container">
+        <div class="back-to-dashboard">
+           <div class="back-to-dashboard" style="text-align: left;">
+    <a href="dashboard.php" class="back-link">
+        ← Back to Dashboard
+    </a>
+</div>
+        </div>
         <!-- Dashboard Header -->
         <div class="dashboard-header">
             <h1>Manage Classes</h1>

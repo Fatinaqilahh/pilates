@@ -21,14 +21,16 @@ if (session_status() === PHP_SESSION_NONE) {
     <nav class="nav-links">
         <?php if(!isset($_SESSION['customer_id']) && !isset($_SESSION['admin_id'])): ?>
             <a href="/pilates/public/#about">About</a>
+             <a href="/pilates/public/staff_directory.php">Staff Directory</a>
             <a href="/pilates/public/#classes">Classes</a>
+            <a href="/pilates/public/instructors.php">Instructors</a>
             <a href="/pilates/public/plans.php">Memberships</a>
+
             <a href="/pilates/auth/login.php">Login</a>
             <a href="/pilates/auth/register.php" class="btn">Sign Up</a>
 
         <?php elseif(isset($_SESSION['customer_id'])): ?>
-            <a href="/pilates/member/dashboard.php">Dashboard</a>
-            <a href="/pilates/member/book.php">Book</a>
+            <a href="/pilates/member/dashboard.php">Home</a>
             <a href="/pilates/member/upgrade.php">Membership</a>
             <a href="/pilates/member/history.php">Payments</a>
             <a href="/pilates/auth/logout.php" class="btn">Logout</a>

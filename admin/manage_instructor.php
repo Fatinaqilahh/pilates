@@ -70,6 +70,13 @@ if (isset($_GET['delete'])) {
     </div>
 
     <div class="dashboard-container">
+             <div class="back-to-dashboard">
+           <div class="back-to-dashboard" style="text-align: left;">
+    <a href="dashboard.php" class="back-link">
+        ← Back to Dashboard
+    </a>
+</div>
+        </div>
         <div class="dashboard-header">
             <h1>Manage Instructors</h1>
             <p class="dashboard-subtitle">
@@ -212,11 +219,7 @@ if (isset($_GET['delete'])) {
             </div>
         </div>
         
-        <div class="back-to-dashboard">
-            <a href="dashboard.php" class="back-link">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
-        </div>
+       
     </div>
 </body>
 </html>

@@ -12,9 +12,9 @@ $search_query = $_GET['search'] ?? '';
 // Build query with filters
 $query = "SELECT p.*, c.customer_Name 
           FROM payment p 
-          LEFT JOIN customermembership m ON p.membership_ID = m.membership_ID 
-          LEFT JOIN customer c ON m.customer_ID = c.customer_ID 
+          LEFT JOIN customer c ON p.customer_ID = c.customer_ID 
           WHERE 1=1";
+
 $params = [];
 $param_types = '';
 
@@ -61,7 +61,8 @@ if (!empty($params)) {
     $q = mysqli_query($conn, $query);
 }
 
-// Calculate totals
+// Store results in array for multiple use
+$payments_data = [];
 $total_revenue = 0;
 $total_payments = 0;
 $card_total = 0;
@@ -71,9 +72,13 @@ $today_revenue = 0;
 $today_date = date('Y-m-d');
 
 if($q && mysqli_num_rows($q) > 0) {
-    mysqli_data_seek($q, 0);
+    // Store all rows in an array
+    while($row = mysqli_fetch_assoc($q)) {
+        $payments_data[] = $row;
+    }
     
-    while($p = mysqli_fetch_assoc($q)) {
+    // Calculate statistics from stored data
+    foreach($payments_data as $p) {
         $amount = floatval($p['amount'] ?? 0);
         $total_revenue += $amount;
         $total_payments++;
@@ -84,34 +89,20 @@ if($q && mysqli_num_rows($q) > 0) {
             $today_revenue += $amount;
         }
         
-        // Categorize by payment method - FIXED LOGIC
-        $method = $p['payment_method'] ?? '';
-        $method_lower = strtolower($method);
+        // Categorize by payment method - MATCH YOUR DATABASE VALUES
+        $method = strtoupper(trim($p['payment_method'] ?? ''));
         
-        // Normalize payment method names
-        if (strpos($method_lower, 'card') !== false || 
-            strpos($method_lower, 'credit') !== false || 
-            strpos($method_lower, 'debit') !== false ||
-            strpos($method_lower, 'visa') !== false ||
-            strpos($method_lower, 'mastercard') !== false) {
+        if ($method === 'CARD') {
             $card_total += $amount;
-        } elseif (strpos($method_lower, 'banking') !== false || 
-                  strpos($method_lower, 'fpx') !== false ||
-                  strpos($method_lower, 'transfer') !== false) {
+        } elseif ($method === 'ONLINE') {
             $online_banking_total += $amount;
-        } elseif (strpos($method_lower, 'wallet') !== false ||
-                  strpos($method_lower, 'ewallet') !== false ||
-                  strpos($method_lower, 'grabpay') !== false ||
-                  strpos($method_lower, 'touch n go') !== false ||
-                  strpos($method_lower, 'boost') !== false) {
+        } elseif ($method === 'EWALLET') {
             $ewallet_total += $amount;
         }
     }
-    
-    mysqli_data_seek($q, 0);
 }
 
-// Get statuses and methods for filters
+// Get statuses for filters
 $statuses_q = mysqli_query($conn, "SELECT DISTINCT payment_status FROM payment WHERE payment_status IS NOT NULL AND payment_status != '' ORDER BY payment_status");
 $statuses = [];
 while($status_row = mysqli_fetch_assoc($statuses_q)) {
@@ -149,6 +140,12 @@ function removeParamFromUrl($param) {
     </div>
 
     <div class="payments-dashboard">
+        <div class="back-to-dashboard" style="text-align: left;">
+            <a href="dashboard.php" class="back-link">
+                ← Back to Dashboard
+            </a>
+        </div>
+
         <div class="dashboard-header">
             <h1>Payment History</h1>
             <p class="dashboard-subtitle">View and filter all customer payments</p>
@@ -183,22 +180,22 @@ function removeParamFromUrl($param) {
                         <div class="filter-group compact">
                             <select name="payment_method" class="filter-control">
                                 <option value="">All Methods</option>
-                                <option value="Credit/Debit Card" <?php echo $payment_method_filter == 'Credit/Debit Card' ? 'selected' : ''; ?>>Credit/Debit Card</option>
-                                <option value="Online Banking" <?php echo $payment_method_filter == 'Online Banking' ? 'selected' : ''; ?>>Online Banking</option>
-                                <option value="E-Wallet" <?php echo $payment_method_filter == 'E-Wallet' ? 'selected' : ''; ?>>E-Wallet</option>
+                                <option value="CARD" <?php echo $payment_method_filter == 'CARD' ? 'selected' : ''; ?>>Credit/Debit Card</option>
+                                <option value="ONLINE" <?php echo $payment_method_filter == 'ONLINE' ? 'selected' : ''; ?>>Online Banking</option>
+                                <option value="EWALLET" <?php echo $payment_method_filter == 'EWALLET' ? 'selected' : ''; ?>>E-Wallet</option>
                             </select>
                         </div>
                         
                        <!-- Date Range-->
-<div class="date-range-group">
-    <input type="date" name="start_date" 
-           value="<?php echo htmlspecialchars($start_date); ?>" 
-           title="Start Date">
-    <span class="date-separator">to</span>
-    <input type="date" name="end_date" 
-           value="<?php echo htmlspecialchars($end_date); ?>" 
-           title="End Date">
-</div>
+                        <div class="date-range-group">
+                            <input type="date" name="start_date" 
+                                   value="<?php echo htmlspecialchars($start_date); ?>" 
+                                   title="Start Date">
+                            <span class="date-separator">to</span>
+                            <input type="date" name="end_date" 
+                                   value="<?php echo htmlspecialchars($end_date); ?>" 
+                                   title="End Date">
+                        </div>
                         
                         <!-- Action Buttons -->
                         <div class="filter-buttons compact">
@@ -230,7 +227,12 @@ function removeParamFromUrl($param) {
                     <?php endif; ?>
                     <?php if(!empty($payment_method_filter)): ?>
                         <span class="filter-tag">
-                            Method: <?php echo htmlspecialchars($payment_method_filter); ?>
+                            Method: <?php 
+                                if($payment_method_filter == 'CARD') echo 'Credit/Debit Card';
+                                elseif($payment_method_filter == 'ONLINE') echo 'Online Banking';
+                                elseif($payment_method_filter == 'EWALLET') echo 'E-Wallet';
+                                else echo htmlspecialchars($payment_method_filter);
+                            ?>
                             <a href="<?php echo removeParamFromUrl('payment_method'); ?>" title="Remove">×</a>
                         </span>
                     <?php endif; ?>
@@ -261,16 +263,16 @@ function removeParamFromUrl($param) {
                 <div class="number"><?php echo $total_payments; ?></div>
             </div>
             <div class="stat-card">
-                <h4>Today's Revenue</h4>
-                <div class="number">RM <?php echo number_format($today_revenue, 2); ?></div>
-            </div>
-            <div class="stat-card">
                 <h4>Credit/Debit Card</h4>
                 <div class="number">RM <?php echo number_format($card_total, 2); ?></div>
             </div>
             <div class="stat-card">
                 <h4>Online Banking</h4>
                 <div class="number">RM <?php echo number_format($online_banking_total, 2); ?></div>
+            </div>
+            <div class="stat-card">
+                <h4>E-Wallet</h4>
+                <div class="number">RM <?php echo number_format($ewallet_total, 2); ?></div>
             </div>
         </div>
 
@@ -283,7 +285,7 @@ function removeParamFromUrl($param) {
                 </div>
             </div>
             
-            <?php if($total_payments > 0): ?>
+            <?php if(!empty($payments_data)): ?>
                 <div class="table-container">
                     <table class="payments-table">
                         <thead>
@@ -297,7 +299,7 @@ function removeParamFromUrl($param) {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while($p = mysqli_fetch_assoc($q)): 
+                            <?php foreach($payments_data as $p): 
                                 $payment_id = $p['payment_ID'] ?? 'N/A';
                                 $customer_name = $p['customer_Name'] ?? 'Unknown Customer';
                                 $amount = $p['amount'] ?? '0.00';
@@ -309,14 +311,11 @@ function removeParamFromUrl($param) {
                                 
                                 // Set badge class based on payment method
                                 $method_class = 'method-card';
-                                $method_lower = strtolower($payment_method);
+                                $method = strtoupper(trim($payment_method));
                                 
-                                if (strpos($method_lower, 'banking') !== false || 
-                                    strpos($method_lower, 'fpx') !== false ||
-                                    strpos($method_lower, 'transfer') !== false) {
+                                if ($method === 'ONLINE') {
                                     $method_class = 'method-online-banking';
-                                } elseif (strpos($method_lower, 'wallet') !== false ||
-                                          strpos($method_lower, 'ewallet') !== false) {
+                                } elseif ($method === 'EWALLET') {
                                     $method_class = 'method-ewallet';
                                 }
                             ?>
@@ -327,17 +326,11 @@ function removeParamFromUrl($param) {
                                     <td>
                                         <span class="method-badge <?php echo $method_class; ?>">
                                             <?php 
-                                            // Display proper method name - fixed logic
-                                            $method_lower = strtolower($payment_method);
-                                            
-                                            if (strpos($method_lower, 'card') !== false || 
-                                                strpos($method_lower, 'credit') !== false || 
-                                                strpos($method_lower, 'debit') !== false) {
+                                            if ($method === 'CARD') {
                                                 echo 'Credit/Debit Card';
-                                            } elseif (strpos($method_lower, 'banking') !== false || 
-                                                      strpos($method_lower, 'fpx') !== false) {
+                                            } elseif ($method === 'ONLINE') {
                                                 echo 'Online Banking';
-                                            } elseif (strpos($method_lower, 'wallet') !== false) {
+                                            } elseif ($method === 'EWALLET') {
                                                 echo 'E-Wallet';
                                             } else {
                                                 echo htmlspecialchars($payment_method);
@@ -352,7 +345,7 @@ function removeParamFromUrl($param) {
                                     </td>
                                     <td><?php echo $formatted_date; ?></td>
                                 </tr>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>

@@ -46,7 +46,7 @@
                 improves flexibility, and enhances posture.
             </p>
             <span>RM 75 / class</span>
-            <a href="/pilates/auth/register.php" class="btn-dark">Book Now</a>
+            
         </div>
 
         <div class="class-card">
@@ -57,7 +57,7 @@
                 to strengthen and stabilise your body.
             </p>
             <span>RM 55 / class</span>
-            <a href="/pilates/auth/register.php" class="btn-dark">Book Now</a>
+           
         </div>
 
         <div class="class-card">
@@ -68,10 +68,12 @@
                 with your preferred instructor.
             </p>
             <span>RM 200 / class</span>
-            <a href="/pilates/auth/register.php" class="btn-dark">Book Now</a>
+           
         </div>
 
     </div>
 </section>
+
+
 
 <?php include("../includes/footer.php"); ?>

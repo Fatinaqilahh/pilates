@@ -74,7 +74,18 @@ if (isset($_GET['delete'])) {
         </div>
     </div>
 
+
+
     <div class="dashboard-container">
+        <div class="back-to-dashboard">
+           <div class="back-to-dashboard" style="text-align: left;">
+    <a href="dashboard.php" class="back-link">
+        ← Back to Dashboard
+    </a>
+</div>
+        </div>
+
+
         <div class="dashboard-header">
             <h1><i class="fas fa-id-card"></i> Membership Plans</h1>
             <p class="dashboard-subtitle">Create and manage membership plans</p>

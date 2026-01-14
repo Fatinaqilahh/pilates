@@ -3,106 +3,125 @@ session_start();
 include("../config/db.php");
 
 $error = "";
-$role = $_POST['role'] ?? 'customer';
 
 if (isset($_POST['login'])) {
-    $email = $_POST['email'];
+
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = $_POST['password'];
 
-    if ($role === 'admin') {
-        $q = mysqli_query($conn,"
-            SELECT * FROM admin 
-            WHERE admin_Email='$email' 
-            LIMIT 1
-        ");
+    /* =========================
+       1️⃣ CHECK ADMIN ACCOUNT
+       ========================= */
+    $adminQ = mysqli_query($conn, "
+        SELECT * FROM admin 
+        WHERE admin_Email = '$email'
+        LIMIT 1
+    ");
 
-        if (mysqli_num_rows($q) === 1) {
-            $admin = mysqli_fetch_assoc($q);
+    if (mysqli_num_rows($adminQ) === 1) {
+        $admin = mysqli_fetch_assoc($adminQ);
 
-            // CHANGED: Use direct comparison (==) instead of password_verify()
-            if ($password == $admin['admin_password']) {
-                $_SESSION['admin_id'] = $admin['admin_ID'];
-                header("Location: ../admin/dashboard.php");
-                exit;
-            } else {
-                $error = "Incorrect admin password";
-            }
+        // ⚠️ If admin password is PLAIN TEXT
+        if ($password === $admin['admin_password']) {
+            $_SESSION['admin_id'] = $admin['admin_ID'];
+            header("Location: ../admin/dashboard.php");
+            exit;
         } else {
-            $error = "Admin account not found";
+            $error = "Incorrect email or password";
         }
 
     } else {
-        // Customer login - keep using password_verify()
-        $q = mysqli_query($conn,"
+
+        /* =========================
+           2️⃣ CHECK CUSTOMER
+           ========================= */
+        $custQ = mysqli_query($conn, "
             SELECT * FROM customer 
-            WHERE customer_Email='$email' 
+            WHERE customer_Email = '$email'
             LIMIT 1
         ");
 
-        if (mysqli_num_rows($q) === 1) {
-            $user = mysqli_fetch_assoc($q);
+        if (mysqli_num_rows($custQ) === 1) {
+            $user = mysqli_fetch_assoc($custQ);
 
             if (password_verify($password, $user['customer_Password'])) {
                 $_SESSION['customer_id'] = $user['customer_ID'];
                 header("Location: ../member/dashboard.php");
                 exit;
             } else {
-                $error = "Incorrect password";
+                $error = "Incorrect email or password";
             }
+
         } else {
-            $error = "Customer account not found";
+            $error = "Account not found";
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Login | MyPilates</title>
 <link rel="stylesheet" href="/pilates/assets/style.css">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    .required-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #D2B48C; /* Beige color - ONLY for Email Address and Password labels */
+    }
+    .required-asterisk {
+        color: #ff0000;
+    }
+</style>
+
+<script>
+function togglePassword() {
+    const input = document.getElementById("passwordInput");
+    input.type = input.type === "password" ? "text" : "password";
+}
+</script>
 </head>
 
 <body class="auth-page">
 
-    <a href="/pilates/public/index.php" class="auth-back">
+<a href="/pilates/public/index.php" class="auth-back">
     ← Back to Home
 </a>
 
-
 <div class="auth-container">
 
-    <!-- LEFT -->
+    <!-- LOGIN FORM -->
     <div class="auth-form">
         <h2>Welcome Back</h2>
-        <p>Select your role and login</p>
+        <p>Login to your MyPilates account</p>
 
         <?php if ($error): ?>
             <div class="auth-error"><?= $error ?></div>
         <?php endif; ?>
 
-        <div class="role-switch">
-    <button type="button"
-        class="role-btn <?= $role === 'customer' ? 'active' : '' ?>"
-        data-role="customer">
-        👤 Customer
-    </button>
+        <form method="POST">
+            
+            <label class="required-label">Email Address <span class="required-asterisk">*</span></label>
+            <input 
+                type="email" 
+                name="email" 
+                placeholder="" 
+                required
+            >
 
-    <button type="button"
-        class="role-btn <?= $role === 'admin' ? 'active' : '' ?>"
-        data-role="admin">
-        🛠 Admin
-    </button>
-</div>
-
-        <form method="POST" id="loginForm">
-            <!-- ONLY ONE hidden input for role, inside the form -->
-            <input type="hidden" name="role" id="roleInput" value="<?= $role ?>">
-
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Password" required>
+            <label class="required-label">Password <span class="required-asterisk">*</span></label>
+            <div class="password-wrapper">
+                <input 
+                    type="password" 
+                    name="password" 
+                    id="passwordInput"
+                    placeholder="" 
+                    required
+                >
+                <span class="toggle-password" onclick="togglePassword()">👁️</span>
+            </div>
 
             <div class="forgot-link">
                 <a href="forgot_password.php">Forgot password?</a>
@@ -112,31 +131,16 @@ if (isset($_POST['login'])) {
         </form>
 
         <p class="auth-footer">
-            Customer only? <a href="register.php">Sign up</a>
+            New member? <a href="register.php">Create an account</a>
         </p>
     </div>
 
-    <!-- RIGHT -->
+    <!-- IMAGE -->
     <div class="auth-illustration">
-        <img src="/pilates/assets/auth-login.jpg" alt="Login">
+        <img src="/pilates/assets/auth-login.jpg" alt="MyPilates Login">
     </div>
 
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const roleButtons = document.querySelectorAll('.role-btn');
-    const roleInput = document.getElementById('roleInput');
-
-    roleButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            roleButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            roleInput.value = btn.dataset.role;
-        });
-    });
-});
-</script>
 
 </body>
 </html>

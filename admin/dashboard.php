@@ -221,9 +221,10 @@ $payment_total = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(amount) as t
                 <a href="dashboard.php" class="active">Dashboard</a>
                 <a href="manage_class.php">Classes</a>
                 <a href="manage_instructor.php">Instructors</a>
-                <a href="manage_customer.php">Customers</a>
+                <a href="manage_customer.php">Members</a>
                 <a href="manage_plan.php">Membership Plans</a>
                 <a href="view_payment.php">Payments</a>
+                <a href="admin_send_promo.php">Send Promotion</a>
                 <a href="../public/index.php" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">Back to Home</a>
                 <a href="logout.php">Logout</a>
             </nav>
@@ -266,11 +267,21 @@ $payment_total = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(amount) as t
                 <div class="recent-activity-list">
                     <?php 
                     // CORRECTED QUERY with customermembership table name
-                    $recent_query = "SELECT p.*, c.customer_Name as customer_name 
-                                     FROM Payment p 
-                                     LEFT JOIN customermembership cm ON p.membership_ID = cm.membership_ID 
-                                     LEFT JOIN Customer c ON cm.customer_ID = c.customer_ID 
-                                     ORDER BY p.payment_Date DESC LIMIT 8";
+                   $recent_query = "
+    SELECT 
+        p.payment_ID,
+        p.amount,
+        p.payment_method,
+        p.payment_status,
+        p.payment_Date,
+        c.customer_Name
+    FROM Payment p
+    JOIN Customer c 
+        ON p.customer_ID = c.customer_ID
+    ORDER BY p.payment_Date DESC
+    LIMIT 8
+";
+
                     
                     $recent_result = mysqli_query($conn, $recent_query);
                     
@@ -295,11 +306,8 @@ $payment_total = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(amount) as t
                         </div>
                         <div class="activity-details">
                             <div class="activity-title">
-                                <?php if(!empty($activity['customer_name'])): ?>
-                                    <?php echo $activity['customer_name']; ?>
-                                <?php else: ?>
-                                    Customer #<?php echo $activity['membership_ID']; ?>
-                                <?php endif; ?>
+                                <?php echo htmlspecialchars($activity['customer_Name']); ?>
+
                             </div>
                             <div class="activity-meta">
                                 Payment #<?php echo $activity['payment_ID']; ?> • 

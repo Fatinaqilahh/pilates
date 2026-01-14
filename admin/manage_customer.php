@@ -77,7 +77,7 @@ function removeParamFromUrl($param) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manage Customers - MyPilates Admin</title>
+<title>Manage Members - MyPilates Admin</title>
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -94,9 +94,16 @@ function removeParamFromUrl($param) {
     </div>
 
     <div class="customers-dashboard">
+        <div class="back-to-dashboard">
+           <div class="back-to-dashboard" style="text-align: left;">
+    <a href="dashboard.php" class="back-link">
+        ← Back to Dashboard
+    </a>
+</div>
+        </div>
         <div class="dashboard-header">
-            <h1>Manage Customers</h1>
-            <p class="dashboard-subtitle">View and manage all customer accounts</p>
+            <h1>Manage Members</h1>
+            <p class="dashboard-subtitle">View and manage all member accounts</p>
         </div>
 
         <?php if(isset($success)): ?>
@@ -107,7 +114,7 @@ function removeParamFromUrl($param) {
 
         <!-- Filter Section -->
         <div class="filter-container">
-            <h3>Filter Customers</h3>
+            <h3>Filter Members</h3>
             <div class="single-line-filters">
                 <form method="GET" class="compact-filter-form">
                     <div class="filter-row">
@@ -173,7 +180,7 @@ function removeParamFromUrl($param) {
         <!-- Customer Stats -->
         <div class="stats-grid">
             <div class="stat-card">
-                <h4>Total Customers</h4>
+                <h4>Total Members</h4>
                 <div class="number"><?php echo $total_customers; ?></div>
             </div>
             <div class="stat-card">
@@ -305,11 +312,6 @@ function removeParamFromUrl($param) {
             <?php endif; ?>
         </div>
         
-        <div class="back-to-dashboard">
-            <a href="dashboard.php" class="back-link">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
-        </div>
     </div>
 </body>
 </html>
